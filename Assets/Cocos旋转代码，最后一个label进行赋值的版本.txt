@@ -1,0 +1,158 @@
+	// /** 只是赋值最后一个label。同时更改center 顺序的旋转。测试使用。暂未使用
+	//  * 滚动数字（可将数字映射字体图片）
+	//  * @param {String} name 容器名 
+	//  * @param {String[]|Number[]} nums 需要滚动的数字数组数据
+	//  * @param {cc.Label[]} center 所有的数字组件
+	//  * @param {Number} duration 花费时间（单位：毫秒）
+	//  * @param {(state:Number,lastLabel:cc.Label,newdata:string)} callback 
+	//  * 	参数1：（值=1：每移动一个的开始；值=2：每移动一个的结束 值=3：最后一个开始 值=4：最后一个结束 值=5：全部结束，值=6：当前最前面一个移动最后面的情况）
+	//  *  参数2：当前最后一个label，只有state=6的时候有
+	//  *  参数3：新的单个font数据
+	//  * @param {Number} backOutDuration 滚动到最后一个时，先超出再弹回来的时间，0或null不回弹
+	//  * @todo 重新调用该方法时为追加，追加时，只有nums、duration数据有效，其它都是取原来的参数
+	//  */
+	// 	scrollNum_goldenEmpire(name, nums, center, duration, callback, backOutDuration) {
+	// 		if (center.length === 0) return console.trace('scrollNum', name);
+
+	// 		// 没数据，直接返回
+	// 		if (!nums || !nums.length) return;
+
+	// 		let numsName = `${name}_scroll_num_nums`;
+	// 		let durationName = `${name}_scroll_num_duration`;
+	// 		let rootXyName = `${name}_scroll_num_root_xy`;
+
+	// 		// 克隆的数据
+	// 		let cloneNums = JSON.parse(JSON.stringify(nums));
+
+	// 		// 标记是否重新移动
+	// 		let isReScorll = true;
+	// 		// 没有缓存数据，缓存数据（同时说明现已停止了移动）
+	// 		if (!this.sceneMap.has(numsName)) {
+	// 			this.sceneMap.set(numsName, cloneNums);
+	// 			this.sceneMap.set(durationName, duration);
+	// 		}
+	// 		// 有缓存数据，将新数据追加缓存（同时说明现在正在移动）
+	// 		else {
+	// 			isReScorll = false;
+	// 			let groupNums = this.sceneMap.get(numsName).concat(cloneNums);
+	// 			this.sceneMap.delete(numsName);
+	// 			this.sceneMap.set(numsName, groupNums);
+	// 			this.sceneMap.delete(durationName);
+	// 			this.sceneMap.set(durationName, duration);
+	// 		};
+
+	// 		// 被移动的对象设置为组件的父级
+	// 		let rootNode = center[0].node.parent;
+
+	// 		// 缓存父节点坐标
+	// 		if (!this.sceneMap.has(rootXyName)) {
+	// 			this.sceneMap.set(rootXyName, cc.v2(rootNode.x, rootNode.y));
+	// 		};
+	// 		// 原坐标
+	// 		/** @type {cc.Vec2} */
+	// 		let parentV2 = this.sceneMap.get(rootXyName);
+	// 		// 目标坐标
+	// 		let targetV2 = cc.v2(parentV2.x + center[0].node.x - center[1].node.x, parentV2.y + center[0].node.y - center[1].node.y);
+	// 		let nextLabel = null;
+
+	// 		// 开始移动组件的父级parent
+	// 		let _scroll = () => {
+	// 			let _duration = this.sceneMap.get(durationName);
+
+	// 			// 没数据了
+	// 			if (!this.sceneMap.has(numsName) || !this.sceneMap.get(numsName).length) {
+	// 				// 删除缓存数据
+	// 				this.sceneMap.delete(numsName);
+	// 				this.sceneMap.delete(durationName);
+	// 				this.sceneMap.delete(rootXyName);
+	// 				// 移动到原坐标
+	// 				this.ui.moveToXy(rootNode, parentV2, _duration / 2, () => {
+	// 					// 全部移动完成
+	// 					callback && callback(5);
+
+	// 				}, null, true);
+
+	// 				return;
+	// 			}
+
+	// 			// 每移动一条开始
+	// 			callback && callback(1);
+
+	// 			// 最后一条开始
+	// 			// 判断this.sceneMap.has(numsName)是防止因外部调用stopScrollNum导致报错
+	// 			if (callback && (!this.sceneMap.has(numsName) || !this.sceneMap.get(numsName).length)) callback(3);
+
+	// 			// 移动parent
+	// 			this.ui.moveToXy(rootNode, targetV2, _duration, () => {
+	// 				// 每移动一条结束
+	// 				callback && callback(2);
+	// 				// 最后一条结束
+	// 				if (callback && (!this.sceneMap.has(numsName) || !this.sceneMap.get(numsName).length)) callback(4);
+
+	// 				// 如果数据用完，并且需要回弹
+	// 				if (backOutDuration && (!this.sceneMap.has(numsName) || !this.sceneMap.get(numsName).length)) {
+	// 					// 移动到原坐标
+	// 					this.ui.moveToXy(rootNode, parentV2, backOutDuration, () => {
+	// 						// 处理下一条数据（可能在移动过程中又加入了数据）
+	// 						return _scroll();
+	// 					}, null);
+	// 				} else {
+
+	// 					let lastPosY = center[center.length - 1].node.position.y
+	// 					for (let i = center.length - 1; i >= 0; i--) {
+	// 						if (i === 0)
+	// 							center[i].node.setPosition(center[i].node.position.x, lastPosY);
+	// 						else
+	// 							center[i].node.setPosition(center[i].node.position.x, center[i - 1].node.position.y);
+	// 					};
+	// 					let nowFirst = center.shift();
+	// 					nextLabel = nowFirst;
+	// 					center.push(nowFirst);
+
+	// 					// 设置到原坐标
+	// 					rootNode.setPosition(parentV2);
+	// 					//对最后一个label进行赋值。给出label和新的数据，最终的的赋值方式交给调用者
+	// 					callback(6, nextLabel, this.sceneMap.get(numsName)[0]);
+
+	// 					// 去掉用过的数据
+	// 					if (this.sceneMap.has(numsName)) this.sceneMap.get(numsName).splice(0, 1);
+
+	// 					// 处理下一条数据
+	// 					return _scroll();
+	// 				};
+	// 			}, null);
+	// 		};
+
+	// 		if (isReScorll) return _scroll();
+	// 	};
+
+		/**
+		 * example code:
+		 * 	this.fontCom0 = [
+			this.lbl_show_num_center0[0],
+			this.lbl_show_num_center1[0],
+			this.lbl_show_num_center2[0],
+			this.lbl_show_num_center3[0],
+			this.lbl_show_num_center4[0],
+			this.lbl_show_num_center5[0],
+			this.lbl_show_num_center6[0],
+			this.lbl_show_num_center7[0],
+			this.lbl_show_num_center8[0],
+		];
+		this.scrollNum_goldenEmpire(`Test`, testNewLineData,
+			this.fontCom0,
+			speed, (state,lastLabel,newData) => {
+				if (state === 6) {
+					// 给next赋值
+					let _str = newData;
+					if (_str.length === 2) {
+						lastLabel.font = this.TestFont[parseInt(_str[0])];
+						lastLabel.string = _str[1];
+					}
+					else {
+						lastLabel.font = this.TestFont[0];
+						lastLabel.string = _str;
+					}
+				}
+			})
+		 */
